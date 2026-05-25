@@ -61,7 +61,6 @@
         .hots-card { background: #fdfdfd; border: 1px solid #e2e8f0; padding: 1.5rem; border-radius: 12px; margin: 1.5rem 0; }
         .analysis-box { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 1rem; margin-top: 1rem; font-size: 0.9rem; }
 
-        /* Floating AI Toolbar */
         .ai-toolbar {
             position: fixed;
             bottom: 2rem;
@@ -102,14 +101,20 @@
                 </div>
                 <div>
                     <h1 class="text-sm font-bold text-slate-900 leading-tight">Catatan Guru IPS Builder</h1>
-                    <p class="text-[10px] text-indigo-500 uppercase tracking-[0.2em] font-black">AI Integrated v3.6</p>
+                    <p class="text-[10px] text-indigo-500 uppercase tracking-[0.2em] font-black">AI Integrated v3.6.1</p>
                 </div>
             </div>
-            <div class="flex gap-2">
+            
+            <div class="flex gap-2 items-center">
+                <!-- API Key Status Indicator & Config Button -->
+                <button onclick="toggleApiModal()" id="apiStatusBtn" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-rose-200 bg-rose-50 text-rose-700 transition hover:bg-rose-100">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" id="apiDot"></span>
+                    <span id="apiStatusText">Kunci API Belum Diatur</span>
+                </button>
                 <button onclick="copyHTML()" class="hidden md:flex text-xs font-bold px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition items-center gap-2">
                     <i class="fas fa-code"></i> COPY HTML
                 </button>
-                <button onclick="generateFullContent()" class="text-xs font-bold px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition items-center g[...]
+                <button onclick="generateFullContent()" class="text-xs font-bold px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition items-center gap-2">
                     <i class="fas fa-wand-magic-sparkles"></i> <span class="hidden sm:inline">GENERATE LENGKAP</span>
                 </button>
             </div>
@@ -120,7 +125,7 @@
         <aside class="w-full md:w-80 space-y-4 order-2 md:order-1">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-3 tracking-widest">Kategori Konten</label>
-                <select id="contentType" class="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 transition-all text-sm outline-none mb-4 appearance-none fon[...]
+                <select id="contentType" class="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 transition-all text-sm outline-none mb-4 appearance-none font-medium">
                     <option value="Kajian Akademik">🏛️ Kajian Akademik</option>
                     <option value="Artikel Nalar Kritis Ilmiah">🧠 Artikel Nalar Kritis</option>
                     <option value="Refleksi Pembelajaran">📝 Refleksi Pembelajaran</option>
@@ -144,7 +149,7 @@
                     </div>
                 </div>
 
-                <button onclick="generateFullContent()" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-xl hover:bg-slate-800 transition-all flex items-center justify-center gap[...]
+                <button onclick="generateFullContent()" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
                     <i class="fas fa-paper-plane"></i> Buat Konten Sekarang
                 </button>
             </div>
@@ -167,6 +172,35 @@
             </div>
         </div>
     </main>
+
+    <!-- API Key Configuration Modal -->
+    <div id="apiModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[110] items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fas fa-key text-amber-500"></i> Pengaturan API Key Gemini
+                </h3>
+                <button onclick="toggleApiModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed mb-4">
+                Untuk menjalankan fitur kecerdasan buatan langsung di hosting GitHub Bapak, Bapak memerlukan <strong>Kunci API Gemini</strong> gratis dari Google. Kunci ini akan disimpan secara aman di browser lokal Anda sendiri.
+            </p>
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Kunci API Gemini Bapak</label>
+                    <input id="apiKeyInput" type="password" placeholder="Tempel AIzaSy... kunci di sini" 
+                           class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition text-sm outline-none font-mono">
+                </div>
+                <a href="https://aistudio.google.com/" target="_blank" class="block text-center py-2.5 px-4 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-bold transition">
+                    <i class="fab fa-google mr-1"></i> Ambil Kunci API Gratis di Google AI Studio
+                </a>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="toggleApiModal()" class="flex-1 py-3 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition">Batal</button>
+                <button onclick="saveApiKey()" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 shadow-md transition">Simpan Kunci</button>
+            </div>
+        </div>
+    </div>
 
     <!-- AI Floating Toolbar -->
     <div id="ai-tools" class="ai-toolbar hidden">
@@ -191,11 +225,63 @@
     </div>
 
     <script>
-        const apiKey = ""; 
+        let apiKey = localStorage.getItem('gemini_api_key') || '';
         const editor = document.getElementById('editor');
         const loader = document.getElementById('loader');
         const loaderTitle = document.getElementById('loader-title');
         const aiTools = document.getElementById('ai-tools');
+        const apiModal = document.getElementById('apiModal');
+
+        // Check API key on startup
+        window.onload = function() {
+            updateApiStatusUI();
+            if(!apiKey) {
+                // Beri tahu pengguna bahwa kunci API diperlukan saat halaman pertama kali dibuka
+                setTimeout(() => { toggleApiModal(); }, 1000);
+            }
+        }
+
+        function toggleApiModal() {
+            if (apiModal.classList.contains('hidden')) {
+                document.getElementById('apiKeyInput').value = apiKey;
+                apiModal.classList.remove('hidden');
+                apiModal.classList.add('flex');
+            } else {
+                apiModal.classList.add('hidden');
+                apiModal.classList.remove('flex');
+            }
+        }
+
+        function saveApiKey() {
+            const enteredKey = document.getElementById('apiKeyInput').value.trim();
+            if(enteredKey) {
+                localStorage.setItem('gemini_api_key', enteredKey);
+                apiKey = enteredKey;
+                alert("Kunci API berhasil disimpan secara lokal!");
+            } else {
+                localStorage.removeItem('gemini_api_key');
+                apiKey = '';
+                alert("Kunci API dihapus.");
+            }
+            updateApiStatusUI();
+            toggleApiModal();
+        }
+
+        function updateApiStatusUI() {
+            const statusBtn = document.getElementById('apiStatusBtn');
+            const dot = document.getElementById('apiDot');
+            const text = document.getElementById('apiStatusText');
+
+            if(apiKey) {
+                statusBtn.className = "flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 transition hover:bg-emerald-100";
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+                text.innerText = "Kunci API Terhubung 🟢";
+            } else {
+                statusBtn.className = "flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-rose-200 bg-rose-50 text-rose-700 transition hover:bg-rose-100";
+                dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse";
+                text.innerText = "Kunci API Belum Diatur 🔴";
+            }
+        }
 
         async function fetchWithRetry(url, options, retries = 5, backoff = 1000) {
             try {
@@ -216,6 +302,12 @@
         }
 
         async function generateFullContent() {
+            if (!apiKey) {
+                alert("Kunci API belum diatur! Harap klik tombol status berwarna merah di pojok kanan atas terlebih dahulu.");
+                toggleApiModal();
+                return;
+            }
+
             const topic = document.getElementById('topicInput').value;
             const category = document.getElementById('contentType').value;
             if (!topic) return alert("Sebutkan topik risetnya, Pak.");
@@ -309,7 +401,6 @@
             }
         }
 
-        // ✨ FEATURE: SEO & Summary Generator
         async function generateSEO() {
             const content = document.getElementById('main-content').innerText;
             loader.classList.remove('hidden'); loader.classList.add('flex');
@@ -320,7 +411,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Berdasarkan teks ini, buatkan 1) Judul SEO-friendly, 2) Meta Description (maks 150 karakter), dan 3) 5 Hashtag Blogger. Teks: ${content.substring([...]
+                        contents: [{ parts: [{ text: `Berdasarkan teks ini, buatkan 1) Judul SEO-friendly, 2) Meta Description (maks 150 karakter), dan 3) 5 Hashtag Blogger. Teks: ${content.substring(0, 3000)}` }] }]
                     })
                 });
 
@@ -340,7 +431,6 @@
             finally { loader.classList.add('hidden'); }
         }
 
-        // ✨ FEATURE: Glossary Generator
         async function generateGlossary() {
             const content = document.getElementById('main-content').innerText;
             loader.classList.remove('hidden'); loader.classList.add('flex');
@@ -368,7 +458,6 @@
             finally { loader.classList.add('hidden'); }
         }
 
-        // ✨ FEATURE: Related Content Ideas
         async function generateRelatedTopics() {
             const topic = document.getElementById('topicInput').value;
             loader.classList.remove('hidden'); loader.classList.add('flex');
@@ -379,7 +468,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Berikan 3 ide topik artikel IPS selanjutnya yang berkaitan erat dengan topik '${topic}' agar blog saya memiliki topik yang berkesinambungan.` }] }[...]
+                        contents: [{ parts: [{ text: `Berikan 3 ide topik artikel IPS selanjutnya yang berkaitan erat dengan topik '${topic}' agar blog saya memiliki topik yang berkesinambungan.` }] }]
                     })
                 });
 
