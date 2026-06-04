@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IPS Builder Pro v4.0 | Catur Pamungkas, S.Pd.,Gr.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Courier+Prime&display=swap');
+        
+        :root {
+            --primary: #1e293b;
+            --accent: #4338ca;
+            --dinas-border: #0f172a;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+        /* Standard Dinas Academic Paper styling for preview */
+        .academic-paper {
+            background: white;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 3.5rem;
+            min-height: 297mm; /* A4 Ratio */
+            width: 100%;
+            max-width: 210mm;
+            margin: 0 auto;
+            position: relative;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #000;
+        }
+
+        .academic-paper h1, .academic-paper h2, .academic-paper h3 {
+            font-family: 'Lora', serif;
+            color: #000;
+            font-weight: 700;
+        }
+
+        /* Kop Surat Resmi Dinas Style */
+        .kop-surat {
+            border-bottom: 4px double #000;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        /* Document table styling according to Dinas Standard */
+        .dinas-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 10pt;
+        }
+        .dinas-table th, .dinas-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+        .dinas-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        /* Question items styling */
+        .soal-item {
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+        .soal-narrative {
+            background-color: #f8fafc;
+            border-left: 3px solid #1e293b;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            font-style: italic;
+            font-size: 10pt;
+            text-align: justify;
+        }
+        .soal-source {
+            font-size: 8pt;
+            color: #475569;
+            margin-top: 4px;
+            font-family: 'Courier Prime', monospace;
+        }
+
+        /* Hidden elements in print but visible in editor */
+        @media print {
+            body { background: white; }
+            .no-print { display: none !important; }
+            .academic-paper {
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+            }
+            .page-break { page-break-before: always; }
+        }
+
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        /* Custom tab styles */
+        .tab-btn.active {
+            border-bottom: 2px solid #4338ca;
+            color: #4338ca;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex flex-col h-screen overflow-hidden">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 z-30 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-100">
+                <i class="fas fa-graduation-cap text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-sm font-bold text-slate-900 leading-tight">IPS Builder Pro <span class="text-indigo-600">v4.0</span></h1>
+                <p class="text-[10px] text-slate-500 font-semibold tracking-wide uppercase">Catur Pamungkas, S.Pd.,Gr. &bull; Dinas Standard</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <!-- API Key Status Badge -->
+            <button onclick="toggleApiModal()" id="apiStatusBtn" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-rose-200 bg-rose-50 text-rose-700 transition hover:bg-rose-100">
+                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse" id="apiDot"></span>
+                <span id="apiStatusText" class="hidden sm:inline">Kunci API Belum Diatur</span>
+            </button>
+            
+            <button onclick="triggerExportWord()" class="px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center gap-1.5 transition">
+                <i class="fas fa-file-word text-blue-600"></i> Ekspor Word
+            </button>
+            <button onclick="triggerExportPDF()" class="px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center gap-1.5 transition">
+                <i class="fas fa-file-pdf text-red-600"></i> Cetak / PDF
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar Navigation & Control Panel -->
+        <aside class="w-80 border-r border-slate-200 bg-white flex flex-col shrink-0 no-print">
+            <!-- Navigation Tabs -->
+            <div class="flex border-b border-slate-100 px-2 shrink-0">
+                <button onclick="switchTab('tab-soal')" id="btn-tab-soal" class="tab-btn active flex-1 py-3 text-xs font-medium text-slate-500 hover:text-slate-800 text-center border-b-2 border-transparent">
+                    <i class="fas fa-paste block mb-1 text-sm"></i> Evaluasi/Soal
+                </button>
+                <button onclick="switchTab('tab-kurikulum')" id="btn-tab-kurikulum" class="tab-btn flex-1 py-3 text-xs font-medium text-slate-500 hover:text-slate-800 text-center border-b-2 border-transparent">
+                    <i class="fas fa-calendar-alt block mb-1 text-sm"></i> Perangkat
+                </button>
+                <button onclick="switchTab('tab-lkpd')" id="btn-tab-lkpd" class="tab-btn flex-1 py-3 text-xs font-medium text-slate-500 hover:text-slate-800 text-center border-b-2 border-transparent">
+                    <i class="fas fa-gamepad block mb-1 text-sm"></i> LKPD
+                </button>
+                <button onclick="switchTab('tab-drive')" id="btn-tab-drive" class="tab-btn flex-1 py-3 text-xs font-medium text-slate-500 hover:text-slate-800 text-center border-b-2 border-transparent">
+                    <i class="fas fa-hdd block mb-1 text-sm"></i> Drive Guru
+                </button>
+            </div>
+
+            <!-- Panel Contents (Scrollable) -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                
+                <!-- TAB 1: EVALUASI & SOAL -->
+                <div id="pane-tab-soal" class="space-y-4">
+                    <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3 text-[11px] text-indigo-900 leading-relaxed">
+                        <strong class="text-indigo-800"><i class="fas fa-magic"></i> AI Batch Question Generator (50+ Soal)</strong><br>
+                        Sistem ini akan menghasilkan soal secara bertahap (batch) untuk menghindari batas memori AI. Tiap tahapan menghasilkan kombinasi kualitatif C1-C6.
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Materi / Topik Pembahasan</label>
+                        <input id="soalTopic" type="text" placeholder="Misal: Dampak Kolonialisme di Indonesia" class="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:border-indigo-500 outline-none transition">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Jumlah Target</label>
+                            <select id="totalQuestions" class="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:border-indigo-500 outline-none transition">
+                                <option value="50">50 Soal (Standard Dinas)</option>
+                                <option value="30">30 Soal</option>
+                                <option value="20">20 Soal</option>
+                                <option value="10">10 Soal (Uji Coba)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Fase & Kelas</label>
+                            <select id="soalClass" class="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:border-indigo-500 outline-none transition">
+                                <option value="Fase D - Kelas VII">Fase D - Kelas VII</option>
+                                <option value="Fase D - Kelas VIII">Fase D - Kelas VIII</option>
+                                <option value="Fase D - Kelas IX">Fase D - Kelas IX</option>
+                                <option value="Fase E - Kelas X">Fase E - Kelas X</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2">
+                        <h4 class="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Pengaturan Butir Soal</h4>
+                        <div class="flex items-center justify-between text-xs text-slate-600">
+                            <span>Sertakan Ilustrasi Orisinal AI</span>
+                            <input type="checkbox" id="includeSoalImage" checked class="accent-indigo-600">
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-slate-600">
+                            <span>Buat Kisi-Kisi & Analisis</span>
+                            <input type="checkbox" id="includeBlueprints" checked class="accent-indigo-600">
+                        </div>
+                    </div>
+
+                    <button onclick="startBatchExamGeneration()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md shadow-indigo-100 flex items-center justify-center gap-2 transition">
+                        <i class="fas fa-layer-group"></i> Mulai Membuat 50 Soal
+                    </button>
+                </div>
+
+                <!-- TAB 2: PERANGKAT AJAR -->
+                <div id="pane-tab-kurikulum" class="space-y-4 hidden">
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] text-slate-700 leading-relaxed">
+                        <strong class="text-indigo-800"><i class="fas fa-calendar-alt"></i> Generator Administrasi Kelas Terintegrasi</strong><br>
+                        Membuat Dokumen Prota, Promes, Silabus, atau RPM (Rencana Pembelajaran Mendalam) terkini.
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Topik / Tema Utama</label>
+                        <input id="curriculumTopic" type="text" placeholder="Misal: Dinamika Interaksi Antarruang" class="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:border-indigo-500 outline-none transition">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Semester</label>
+                            <select id="curriculumSemester" class="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:border-indigo-500 outline-none transition">
+                                <option value="Ganjil">Ganjil</option>
+                                <option value="Genap">Genap</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Tahun Ajaran</label>
+                            <input id="curriculumYear" type="text" value="2026/2027" class="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:border-indigo-500 outline-none transition">
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2">
+                        <h4 class="text-[10px] font-bold text-slate-600 uppercase tracking-wide">8 Dimensi Profil Lulusan</h4>
+                        <div class="max-h-32 overflow-y-auto space-y-1.5 text-xs text-slate-600 pr-1">
+                            <label class="flex items-center gap-2"><input type="checkbox" name="ppp-dim" value="Beriman & Bertakwa" checked class="accent-indigo-600"> 1. Beriman & Bertakwa</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" name="ppp-dim" value="Berkebinekaan Global" checked class="accent-indigo-600"> 2. Berkebinekaan Global</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" name="ppp-dim" value="Bergotong Royong" checked class="accent-indigo-600"> 3. Bergotong Royong</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" name="ppp-dim" value="Mandiri" checked class="accent-indigo-600"> 4. Mandiri</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" name="ppp-dim" value="Bernalar Kritis" checked class="accent-indigo-600"> 5. Bernalar Kritis</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" name="ppp-dim" value="Kreatif" checked class="accent-indigo-600"> 6. Kreatif</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" name="ppp-dim" value="Literasi Finansial & Sosial" checked class="accent-indigo-600"> 7. Literasi Finansial & Sosial</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" name="ppp-dim" value="Kesadaran Ekologis & Kewarganegaraan" checked class="accent-indigo-600"> 8. Kesadaran Ekologis</label>
+                        </div>
+                        <button onclick="randomizeDimensions()" class="w-full mt-1.5 py-1 text-center border border-slate-300 rounded-lg text-[10px] font-bold hover:bg-slate-100 transition flex items-center justify-center gap-1">
+                            <i class="fas fa-random"></i> Acak Dimensi Sesuai Kebutuhan
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="generateCurriculum('prota')" class="p-2.5 bg-slate-950 hover:bg-slate-800 text-white rounded-xl font-bold text-[10px] transition text-center">
+                            <i class="fas fa-scroll block mb-1"></i> Buat PROTA/PROMES
+                        </button>
+                        <button onclick="generateCurriculum('silabus')" class="p-2.5 bg-slate-950 hover:bg-slate-800 text-white rounded-xl font-bold text-[10px] transition text-center">
+                            <i class="fas fa-route block mb-1"></i> Buat ATP/Silabus
+                        </button>
+                    </div>
+                    <button onclick="generateCurriculum('rpm')" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md shadow-indigo-100 flex items-center justify-center gap-2 transition">
+                        <i class="fas fa-file-contract"></i> Buat RPM (Deep Learning)
+                    </button>
+                </div>
+
+                <!-- TAB 3: LKPD & GAMIFIKASI -->
+                <div id="pane-tab-lkpd" class="space-y-4 hidden">
+                    <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3 text-[11px] text-indigo-900 leading-relaxed">
+                        <strong class="text-indigo-800"><i class="fas fa-gamepad"></i> LKPD & Gamifikasi Kreatif</strong><br>
+                        Sistem menyusun Lembar Kerja Siswa yang mengintegrasikan pola gamifikasi agar pembelajaran IPS menyenangkan.
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Topik LKPD</label>
+                        <input id="lkpdTopic" type="text" placeholder="Misal: Kelangkaan Sumber Daya Ekonomi" class="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:border-indigo-500 outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Format Gamifikasi</label>
+                        <select id="lkpdFormat" class="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:border-indigo-500 outline-none transition">
+                            <option value="Teka-Teki Silang (TTS) Akademik">🧩 Teka-Teki Silang (TTS) Akademik</option>
+                            <option value="Detektif Sosial (Studi Kasus)">🕵️ Detektif Sosial (Studi Kasus)</option>
+                            <option value="Alur Garis Waktu Sejarah">⏳ Alur Garis Waktu Sejarah</option>
+                            <option value="Pencocokan Kartu Logika (Matching Game)">🎴 Pencocokan Kartu Logika</option>
+                        </select>
+                    </div>
+
+                    <button onclick="generateLKPD()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md shadow-indigo-100 flex items-center justify-center gap-2 transition">
+                        <i class="fas fa-puzzle-piece"></i> Buat LKPD Gamifikasi
+                    </button>
+                </div>
+
+                <!-- TAB 4: DRIVE GURU -->
+                <div id="pane-tab-drive" class="space-y-4 hidden">
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] text-slate-700 leading-relaxed">
+                        <strong class="text-indigo-800"><i class="fas fa-hdd"></i> Database Draft Guru</strong><br>
+                        Simpan draf administrasi Bapak di memori lokal agar tidak hilang.
+                    </div>
+
+                    <div class="space-y-2">
+                        <button onclick="saveToLocalDrive()" class="w-full py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition flex items-center justify-center gap-1.5">
+                            <i class="fas fa-save"></i> Simpan Draf ke Drive Guru
+                        </button>
+                        <button onclick="clearLocalDrive()" class="w-full py-2 border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5">
+                            <i class="fas fa-trash"></i> Kosongkan Database
+                        </button>
+                    </div>
+
+                    <hr class="border-slate-200">
+                    <h4 class="text-xs font-bold text-slate-700">Draf Tersimpan:</h4>
+                    <div id="savedDraftsList" class="space-y-2 max-h-48 overflow-y-auto">
+                        <p class="text-[11px] text-slate-400 italic text-center">Tidak ada draf tersimpan.</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Editor Viewport / Academic Sheet Container -->
+        <main class="flex-1 overflow-y-auto p-8 flex justify-center bg-slate-100">
+            <div id="editor-container" class="academic-paper p-16 select-text mb-12">
+                <!-- Editable Academic Page Paper Sheet -->
+                <div id="editor" contenteditable="true" class="focus:outline-none text-justify">
+                    <!-- Default Academic Header / Dinas Standard Cover Mockup -->
+                    <div class="kop-surat">
+                        <h2 class="text-lg uppercase font-bold tracking-tight">PEMERINTAH KABUPATEN / KOTA DINAS PENDIDIKAN</h2>
+                        <h3 class="text-md uppercase font-bold tracking-tight text-slate-800">SATUAN PENDIDIKAN MENENGAH ATAS / PERTAMA</h3>
+                        <p class="text-xs text-slate-600 italic">Sekretariat: Alamat Dinas Pendidikan &bull; Email: admin@dinas.go.id</p>
+                    </div>
+                    
+                    <div class="text-center py-20 no-print">
+                        <i class="fas fa-school text-5xl text-slate-200 mb-4"></i>
+                        <h2 class="text-xl font-bold text-slate-600 mb-2" style="border:none">Selamat Datang Bapak Catur Pamungkas, S.Pd.,Gr.</h2>
+                        <p class="text-sm text-slate-400 italic">Gunakan panel navigasi kiri untuk menghasilkan dokumen akademik, kisi-kisi, draf soal, silabus, LKPD, atau RPM dengan cinta dan dedikasi.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- API Key Configuration Modal -->
+    <div id="apiModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[110] items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fas fa-key text-amber-500"></i> API Key Gemini
+                </h3>
+                <button onclick="toggleApiModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed mb-4">
+                Untuk menjalankan seluruh modul kecerdasan buatan, visual orisinal Imagen, dan auto-grounding YouTube langsung di hosting mandiri Bapak, Bapak memerlukan <strong>Kunci API Gemini</strong> gratis dari Google AI Studio.
+            </p>
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Kunci API Gemini Bapak</label>
+                    <input id="apiKeyInput" type="password" placeholder="Tempel AIzaSy... kunci di sini" 
+                           class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition text-sm outline-none font-mono">
+                </div>
+                <a href="https://aistudio.google.com/" target="_blank" class="block text-center py-2.5 px-4 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-bold transition">
+                    <i class="fab fa-google mr-1"></i> Ambil Kunci API Gratis di Google AI Studio
+                </a>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="toggleApiModal()" class="flex-1 py-3 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition">Batal</button>
+                <button onclick="saveApiKey()" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 shadow-md transition">Simpan Kunci</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Loading Screen with Step indicators -->
+    <div id="loader" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[100] items-center justify-center p-6">
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl max-w-md w-full text-center border border-white/20">
+            <div class="w-20 h-20 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-8"></div>
+            <h3 id="loader-title" class="font-bold text-xl text-slate-900 mb-3 tracking-tight">Menghubungkan Server AI...</h3>
+            <p id="loader-desc" class="text-sm text-slate-500 leading-relaxed">Menyiapkan koordinasi materi dan visual orisinal...</p>
+            <div class="mt-4 w-full bg-slate-100 rounded-full h-1.5 dark:bg-slate-200 hidden" id="progressBarContainer">
+                <div class="bg-indigo-600 h-1.5 rounded-full transition-all" id="progressBar" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let apiKey = localStorage.getItem('gemini_api_key') || '';
+        const editor = document.getElementById('editor');
+        const loader = document.getElementById('loader');
+        const loaderTitle = document.getElementById('loader-title');
+        const loaderDesc = document.getElementById('loader-desc');
+        const progressBarContainer = document.getElementById('progressBarContainer');
+        const progressBar = document.getElementById('progressBar');
+        const savedDraftsList = document.getElementById('savedDraftsList');
+
+        window.onload = function() {
+            updateApiStatusUI();
+            loadDraftsList();
+            if (!apiKey) {
+                setTimeout(() => { toggleApiModal(); }, 1000);
+            }
+        };
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('aside [id^="pane-tab-"]').forEach(pane => pane.classList.add('hidden'));
+            
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+            document.getElementById(`pane-${tabId}`).classList.remove('hidden');
+        }
+
+        function toggleApiModal() {
+            const apiModal = document.getElementById('apiModal');
+            if (apiModal.classList.contains('hidden')) {
+                document.getElementById('apiKeyInput').value = apiKey;
+                apiModal.classList.remove('hidden');
+                apiModal.classList.add('flex');
+            } else {
+                apiModal.classList.add('hidden');
+                apiModal.classList.remove('flex');
+            }
+        }
+
+        function saveApiKey() {
+            const enteredKey = document.getElementById('apiKeyInput').value.trim();
+            if (enteredKey) {
+                localStorage.setItem('gemini_api_key', enteredKey);
+                apiKey = enteredKey;
+                alert("Kunci API berhasil disimpan secara lokal!");
+            } else {
+                localStorage.removeItem('gemini_api_key');
+                apiKey = '';
+                alert("Kunci API dihapus.");
+            }
+            updateApiStatusUI();
+            toggleApiModal();
+        }
+
+        function updateApiStatusUI() {
+            const statusBtn = document.getElementById('apiStatusBtn');
+            const dot = document.getElementById('apiDot');
+            const text = document.getElementById('apiStatusText');
+
+            if (apiKey) {
+                statusBtn.className = "flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 transition hover:bg-emerald-100";
+                dot.className = "w-2 h-2 rounded-full bg-emerald-500";
+                text.innerText = "Kunci API Terhubung 🟢";
+            } else {
+                statusBtn.className = "flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-rose-200 bg-rose-50 text-rose-700 transition hover:bg-rose-100";
+                dot.className = "w-2 h-2 rounded-full bg-rose-500 animate-pulse";
+                text.innerText = "Kunci API Belum Diatur 🔴";
+            }
+        }
+
+        async function fetchWithRetry(url, options, retries = 5, backoff = 1000) {
+            try {
+                const response = await fetch(url, options);
+                if (response.ok) return await response.json();
+                if (retries > 0) {
+                    await new Promise(r => setTimeout(r, backoff));
+                    return fetchWithRetry(url, options, retries - 1, backoff * 2);
+                }
+                throw new Error(`HTTP Error: ${response.status}`);
+            } catch (error) {
+                if (retries > 0) {
+                    await new Promise(r => setTimeout(r, backoff));
+                    return fetchWithRetry(url, options, retries - 1, backoff * 2);
+                }
+                throw error;
+            }
+        }
+
+        function randomizeDimensions() {
+            const checkBoxes = document.querySelectorAll('input[name="ppp-dim"]');
+            checkBoxes.forEach(cb => {
+                cb.checked = Math.random() > 0.4; // 60% chance to select randomly
+            });
+            alert("Dimensi Profil Lulusan berhasil dipilih secara acak!");
+        }
+
+        function getSelectedDimensions() {
+            const checked = [];
+            document.querySelectorAll('input[name="ppp-dim"]:checked').forEach(cb => {
+                checked.push(cb.value);
+            });
+            return checked.join(", ");
+        }
+
+        async function startBatchExamGeneration() {
+            if (!apiKey) {
+                alert("Kunci API belum diatur! Harap atur terlebih dahulu.");
+                toggleApiModal();
+                return;
+            }
+
+            const topic = document.getElementById('soalTopic').value.trim();
+            const totalQuestions = parseInt(document.getElementById('totalQuestions').value);
+            const academicClass = document.getElementById('soalClass').value;
+            const includeImage = document.getElementById('includeSoalImage').checked;
+
+            if (!topic) {
+                alert("Sebutkan topik pembahasan soal terlebih dahulu, Pak.");
+                return;
+            }
+
+            loader.classList.remove('hidden');
+            loader.classList.add('flex');
+            progressBarContainer.classList.remove('hidden');
+            progressBar.style.width = "0%";
+
+            let currentBatch = 1;
+            const questionsPerBatch = 10;
+            const totalBatches = Math.ceil(totalQuestions / questionsPerBatch);
+            let combinedQuestionsHTML = "";
+            let generatedBlueprints = [];
+
+            try {
+                // Initialize the Document Cover
+                editor.innerHTML = `
+                    <div class="kop-surat">
+                        <h2 class="text-lg uppercase font-bold tracking-tight">PEMERINTAH KABUPATEN / KOTA DINAS PENDIDIKAN</h2>
+                        <h3 class="text-md uppercase font-bold tracking-tight text-slate-800">${academicClass.toUpperCase()}</h3>
+                        <p class="text-xs text-slate-600 italic">Sekretariat: Alamat Dinas Pendidikan &bull; Email: admin@dinas.go.id</p>
+                    </div>
+                    <div class="text-center mb-8">
+                        <h2 class="text-xl font-bold uppercase underline">NASKAH PENILAIAN IPS STANDAR TKA SOSHUM</h2>
+                        <p class="text-sm font-semibold">Materi Utama: ${topic.toUpperCase()}</p>
+                    </div>
+                    <div id="main-questions-container" class="space-y-6"></div>
+                    <div id="blueprints-container" class="page-break mt-12"></div>
+                    <div id="keys-container" class="page-break mt-12"></div>
+                    <div class="text-center mt-12 border-t border-slate-300 pt-6 font-semibold text-xs no-print text-slate-500">
+                        Dibuat dengan cinta oleh Asisten Guru Profesional: Catur Pamungkas, S.Pd.,Gr. | catatanguruips.blogspot.com
+                    </div>
+                `;
+
+                const questionsContainer = document.getElementById('main-questions-container');
+
+                for (let i = 0; i < totalBatches; i++) {
+                    const startNum = i * questionsPerBatch + 1;
+                    const endNum = Math.min((i + 1) * questionsPerBatch, totalQuestions);
+                    
+                    loaderTitle.innerText = `Menyusun Soal (Batch ${i+1}/${totalBatches})`;
+                    loaderDesc.innerText = `Memproses soal nomor ${startNum} sampai ${endNum}...`;
+                    progressBar.style.width = `${((i) / totalBatches) * 100}%`;
+
+                    const systemPrompt = `Anda adalah Tim Pengembang Soal Dinas Pendidikan Nasional & Tentor TKA Soshum. Gaya bahasa: Akademis, Presisi, Valid, Tanpa Plagiasi. 
+                    Buat 10 soal evaluasi IPS materi ${topic} untuk ${academicClass}. Soal dimulai dari nomor ${startNum} sampai ${endNum}.
+                    Distribusikan level kognitif dari C1 hingga C6 (Tingkat Kesukaran: Sangat Mudah, Mudah, Sedang, Sulit, Sangat Sulit).
+                    Campur tipe soal berikut secara merata: Pilihan Ganda (PG), Pilihan Ganda Kompleks (PGK), Mengurutkan (Ordering), dan Menjodohkan (Matching).
+                    Beberapa soal wajib memiliki stimulus berupa narasi teks ilmiah (minimal 2 paragraf) atau skenario kasus sosial yang valid.
+                    Sertakan sumber valid/referensi di bawah teks narasi/soal dengan format font kecil (8pt).
+                    Format output wajib dalam struktur HTML bersih (soal-item, hots-card, pg-options, matching-table, ordering-list).`;
+
+                    const batchRes = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: `Buat soal evaluasi nomor ${startNum} sampai ${endNum} tentang ${topic}` }] }],
+                            systemInstruction: { parts: [{ text: systemPrompt }] }
+                        })
+                    });
+
+                    let batchHtml = batchRes.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                    batchHtml = batchHtml.replace(/```html/g, "").replace(/```/g, "");
+                    
+                    questionsContainer.innerHTML += `<div class="animate-fade mt-6">${batchHtml}</div>`;
+                }
+
+                progressBar.style.width = "90%";
+                if (includeImage) {
+                    loaderTitle.innerText = "Merancang Ilustrasi Visual...";
+                    loaderDesc.innerText = "Imagen 4.0 sedang memproses gambar orisinal...";
+                    
+                    const imgPlaceholder = document.getElementById('main-questions-container').querySelectorAll('.needs-image');
+                    for (let x = 0; x < Math.min(imgPlaceholder.length, 3); x++) {
+                        try {
+                            const imgPrompt = imgPlaceholder[x].getAttribute('data-prompt') || `Educational illustration for IPS Social Sciences topic: ${topic}`;
+                            const imgRes = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    instances: { prompt: `${imgPrompt}, textbook style diagram, professional clean vectors.` },
+                                    parameters: { sampleCount: 1 }
+                                })
+                            });
+
+                            if (imgRes.predictions?.[0]) {
+                                const b64 = imgRes.predictions[0].bytesBase64Encoded;
+                                imgPlaceholder[x].innerHTML = `
+                                    <div class="asset-container">
+                                        <img src="data:image/png;base64,${b64}" alt="${topic}" class="w-full h-auto">
+                                        <div class="asset-caption"><i class="fas fa-info-circle"></i> Ilustrasi visual orisinal AI &bull; Sumber valid literatur Catatan Guru IPS</div>
+                                    </div>
+                                `;
+                            }
+                        } catch (e) {
+                            console.error("Visual gen failed", e);
+                        }
+                    }
+                }
+
+                loaderTitle.innerText = "Menyusun Analisis & Kunci Jawaban";
+                loaderDesc.innerText = "Menghitung validitas instrumen evaluasi...";
+                
+                const matrixPrompt = `Berdasarkan seluruh soal di atas tentang topik '${topic}', buatlah:
+                1) Kisi-Kisi Instrumen Soal (Matrix Blueprint) dalam format tabel HTML (Kolom: No, KD/Materi, Indikator Soal, Level Kognitif, Bentuk Soal, Kunci).
+                2) Kunci Jawaban Lengkap dan Analisis Butir Soal (Item Analysis) yang mengurai kebenaran dan kekeliruan tiap pengecoh secara akademis anti-plagiasi.`;
+
+                const matrixRes = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: matrixPrompt }] }]
+                    })
+                });
+
+                let matrixHtml = matrixRes.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                matrixHtml = matrixHtml.replace(/```html/g, "").replace(/```/g, "");
+
+                document.getElementById('blueprints-container').innerHTML = `
+                    <h3 class="text-lg font-bold uppercase border-b-2 border-slate-800 pb-2 mb-4">KISI-KISI & ANALISIS BUTIR SOAL</h3>
+                    ${matrixHtml}
+                `;
+
+                const footerSignOff = `
+                    <div class="grid grid-cols-2 gap-12 mt-16 text-center text-xs text-black page-break-inside-avoid">
+                        <div>
+                            <p>Mengetahui,</p>
+                            <p class="font-bold">Pengawas Pembina Dinas Pendidikan</p>
+                            <br><br><br>
+                            <p class="font-bold underline">_________________________</p>
+                            <p>NIP. .................................</p>
+                        </div>
+                        <div>
+                            <p>Kota, ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            <p class="font-bold">Guru Mata Pelajaran,</p>
+                            <br><br><br>
+                            <p class="font-bold underline">Catur Pamungkas, S.Pd.,Gr.</p>
+                            <p>NIP. .................................</p>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('editor').innerHTML += footerSignOff;
+
+            } catch (err) {
+                alert("Gangguan sistem penulisan: " + err.message);
+            } finally {
+                loader.classList.add('hidden');
+                progressBarContainer.classList.add('hidden');
+            }
+        }
+
+        async function generateCurriculum(type) {
+            if (!apiKey) {
+                alert("Kunci API belum diatur!");
+                toggleApiModal();
+                return;
+            }
+
+            const topic = document.getElementById('curriculumTopic').value.trim();
+            const semester = document.getElementById('curriculumSemester').value;
+            const year = document.getElementById('curriculumYear').value;
+            const dims = getSelectedDimensions();
+
+            if (!topic) {
+                alert("Sebutkan topik utamanya terlebih dahulu, Pak.");
+                return;
+            }
+
+            loader.classList.remove('hidden'); loader.classList.add('flex');
+            loaderTitle.innerText = "Menyusun Administrasi Kurikulum...";
+            loaderDesc.innerText = `Menyelaraskan ATP, CP, dan 8 Dimensi Profil Lulusan...`;
+
+            try {
+                const systemPrompt = `Anda adalah Pengawas Dinas Pendidikan Nasional & Tenaga Ahli Kurikulum Merdeka.
+                Buatlah dokumen '${type.toUpperCase()}' untuk materi '${topic}' Semester ${semester} Tahun Ajaran ${year}.
+                Integrasikan secara eksplisit Capaian Pembelajaran (CP), Alur Tujuan Pembelajaran (ATP), dan 8 Dimensi Profil Lulusan Pancasila: ${dims}.
+                Khusus jika tipe 'rpm' (Rencana Pembelajaran Mendalam), gunakan paradigma Deep Learning modern (menekankan kedalaman pemahaman, bukan hafalan).
+                Format output harus menggunakan tabel HTML standar dinas dengan Kop resmi di atasnya.`;
+
+                const res = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Buat dokumen ${type} untuk materi ${topic}` }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                let docHtml = res.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                docHtml = docHtml.replace(/```html/g, "").replace(/```/g, "");
+
+                editor.innerHTML = `
+                    <div class="kop-surat">
+                        <h2 class="text-lg uppercase font-bold tracking-tight">KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI</h2>
+                        <h3 class="text-md uppercase font-bold tracking-tight text-slate-800">DOKUMEN ADMINISTRASI PEMBELAJARAN IPS</h3>
+                        <p class="text-xs text-slate-600 italic">Penyusun: Catur Pamungkas, S.Pd.,Gr. &bull; Tahun Ajaran: ${year}</p>
+                    </div>
+                    ${docHtml}
+                    <div class="mt-12 text-center text-xs font-semibold text-slate-500 border-t border-slate-200 pt-6">
+                        Dibuat dengan cinta oleh Asisten Guru Profesional: Catur Pamungkas, S.Pd.,Gr. | catatanguruips.blogspot.com
+                    </div>
+                `;
+
+            } catch (err) {
+                alert("Gangguan: " + err.message);
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        async function generateLKPD() {
+            if (!apiKey) {
+                alert("Kunci API belum diatur!");
+                toggleApiModal();
+                return;
+            }
+
+            const topic = document.getElementById('lkpdTopic').value.trim();
+            const format = document.getElementById('lkpdFormat').value;
+
+            if (!topic) {
+                alert("Sebutkan topik LKPD terlebih dahulu, Pak.");
+                return;
+            }
+
+            loader.classList.remove('hidden'); loader.classList.add('flex');
+            loaderTitle.innerText = "Merancang LKPD Gamifikasi...";
+            loaderDesc.innerText = `Menyusun template aktivitas ${format}...`;
+
+            try {
+                const systemPrompt = `Anda adalah Desainer Instruksional & Guru IPS Profesional. 
+                Tugas: Buat Lembar Kerja Peserta Didik (LKPD) materi '${topic}' dengan model gamifikasi: '${format}'.
+                Sertakan: 1) Tujuan Pembelajaran, 2) Aturan Permainan/Aktivitas, 3) Layout visual permainan (misal petak TTS, kartu menjodohkan, atau naskah detektif sosial) menggunakan tabel dan daftar HTML yang bersih dan estetik.
+                Tambahkan instrumen penilaian diri di akhir LKPD.`;
+
+                const res = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Buat LKPD ${format} topik ${topic}` }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                let lkpdHtml = res.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                lkpdHtml = lkpdHtml.replace(/```html/g, "").replace(/```/g, "");
+
+                editor.innerHTML = `
+                    <div class="kop-surat">
+                        <h2 class="text-lg uppercase font-bold tracking-tight">LEMBAR KERJA PESERTA DIDIK (LKPD) GAMIFIKASI</h2>
+                        <h3 class="text-md uppercase font-bold tracking-tight text-slate-800">Mata Pelajaran: Ilmu Pengetahuan Sosial (IPS)</h3>
+                        <p class="text-xs text-slate-600 italic">Dinas Standard &bull; Kurikulum Merdeka</p>
+                    </div>
+                    ${lkpdHtml}
+                    <div class="mt-12 text-center text-xs font-semibold text-slate-500 border-t border-slate-200 pt-6">
+                        Dibuat dengan cinta oleh Asisten Guru Profesional: Catur Pamungkas, S.Pd.,Gr. | catatanguruips.blogspot.com
+                    </div>
+                `;
+
+            } catch (err) {
+                alert("Gangguan: " + err.message);
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        function triggerExportWord() {
+            const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><title>Export Word</title><style>body { font-family: 'Arial'; } table { border-collapse: collapse; width:100%; } th, td { border: 1px solid #000; padding: 6px; }</style></head><body>";
+            const footer = "</body></html>";
+            const sourceHTML = header + editor.innerHTML + footer;
+            
+            const blob = new Blob(['\ufeff' + sourceHTML], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Dokumen-Catur-Pamungkas-${new Date().getTime()}.doc`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function triggerExportPDF() {
+            window.print();
+        }
+
+        function saveToLocalDrive() {
+            const topic = document.getElementById('soalTopic').value || document.getElementById('curriculumTopic').value || "Dokumen Tanpa Judul";
+            const savedDrafts = JSON.parse(localStorage.getItem('saved_ips_drafts') || '[]');
+            
+            savedDrafts.push({
+                id: new Date().getTime(),
+                title: topic,
+                content: editor.innerHTML,
+                date: new Date().toLocaleDateString('id-ID')
+            });
+
+            localStorage.setItem('saved_ips_drafts', JSON.stringify(savedDrafts));
+            alert("Berhasil disimpan di database lokal!");
+            loadDraftsList();
+        }
+
+        function loadDraftsList() {
+            const savedDrafts = JSON.parse(localStorage.getItem('saved_ips_drafts') || '[]');
+            savedDraftsList.innerHTML = "";
+            
+            if (savedDrafts.length === 0) {
+                savedDraftsList.innerHTML = `<p class="text-[11px] text-slate-400 italic text-center">Tidak ada draf tersimpan.</p>`;
+                return;
+            }
+
+            savedDrafts.forEach(draft => {
+                const div = document.createElement('div');
+                div.className = "p-2 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition flex justify-between items-center text-xs";
+                div.innerHTML = `
+                    <div class="truncate pr-2 cursor-pointer" onclick="openDraft(${draft.id})">
+                        <strong class="text-slate-700">${draft.title}</strong>
+                        <p class="text-[10px] text-slate-400">${draft.date}</p>
+                    </div>
+                    <button onclick="deleteDraft(${draft.id})" class="text-rose-500 hover:text-rose-700"><i class="fas fa-trash"></i></button>
+                `;
+                savedDraftsList.appendChild(div);
+            });
+        }
+
+        function openDraft(id) {
+            const savedDrafts = JSON.parse(localStorage.getItem('saved_ips_drafts') || '[]');
+            const draft = savedDrafts.find(d => d.id === id);
+            if (draft) {
+                editor.innerHTML = draft.content;
+                alert(`Draf "${draft.title}" berhasil dimuat ke area kerja!`);
+            }
+        }
+
+        function deleteDraft(id) {
+            let savedDrafts = JSON.parse(localStorage.getItem('saved_ips_drafts') || '[]');
+            savedDrafts = savedDrafts.filter(d => d.id !== id);
+            localStorage.setItem('saved_ips_drafts', JSON.stringify(savedDrafts));
+            loadDraftsList();
+        }
+
+        function clearLocalDrive() {
+            if (confirm("Apakah Bapak yakin ingin mengosongkan semua draf yang tersimpan?")) {
+                localStorage.removeItem('saved_ips_drafts');
+                loadDraftsList();
+            }
+        }
+    </script>
+</body>
+</html>
